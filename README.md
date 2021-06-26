@@ -1,3 +1,5 @@
+### Fork version. It's coded for environment I need.
+
 # Fisherman
 An Albion online fishing bot
 

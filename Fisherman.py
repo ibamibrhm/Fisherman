@@ -20,7 +20,6 @@ coord_bait = parser.get('Settings','bait_inventory')
 detection_threshold = parser.getfloat('Settings','detection_threshold')
 dist_launch_time = parser.getfloat('Settings', 'launch_time')
 cast_time = parser.getint('Settings', 'cast_time')
-food_time = parser.getint('Settings', 'food_time')
 screen_area = screen_area.strip('(')
 screen_area = screen_area.strip(')')
 cordies = screen_area.split(',')
@@ -142,16 +141,7 @@ def do_minigame():
                         break
         else:
             STATE = "CASTING"
-#use_food
-def use_food():
-    global stop_button
-    while True:
-        if stop_button == False:
-            time.sleep(food_time*60)
-            pyautogui.press("2")
-            log_info(f"Food is used.",logger="Information")
-        else:
-            break
+
 ##########################################################
 #
 #   These Functions are all Callbacks used by DearPyGui
@@ -265,7 +255,6 @@ def start(data,sender):
     stop_button = False
     volume_manager = threading.Thread(target = check_volume, name= "VOLUME CHECK MANAGE")
     hook_manager = threading.Thread(target = cast_hook, name = "CAST HOOK MANAGE")
-    food_manager = threading.Thread(target = use_food, name = "FOOD MANAGER")
     if stop_button == False:
         max_volume = get_value("Set Volume Threshold")
         if len(coords) == 0:
@@ -284,8 +273,6 @@ def start(data,sender):
             time.sleep(0.8)
             pyautogui.press('2')
             time.sleep(2.2)
-            food_manager.start()
-            log_info(f'Food Manager Started',logger="Information")
             time.sleep(0.2)
             volume_manager.start()
             log_info(f'Volume Scanner Started',logger="Information")
@@ -323,16 +310,12 @@ def save_threshold(sender,data):
 #Set time launch dist
 def save_dist_launch_time(sender,data):
     global dist_launch_time
-    dist_launch_time = get_value("Set Time Lauch Distance")
+    dist_launch_time = get_value("Set Time Launch Distance")
     log_info(f'Dist time launch Updated to :{dist_launch_time}',logger="Information")
 def save_cast_time(sender,data):
     global cast_time
     cast_time = get_value("Set Cast Time")
     log_info(f'Cast time Updated to :{cast_time}',logger="Information")
-def save_food_time(sender,data):
-    global food_time
-    food_time = get_value("Set Food Time")
-    log_info(f'Food time Updated to :{food_time}',logger="Information")
 # save modify resolution bobber
 def save_resolution(sender,data):
     global resolution
@@ -403,7 +386,6 @@ def save_settings(sender,data):
     p.set('Settings','detection_threshold',str(detection_threshold))
     p.set('Settings','launch_time',str(dist_launch_time))
     p.set('Settings','cast_time',str(cast_time))
-    p.set('Settings','food_time',str(food_time))
     p.write(open(f'Settings.ini', 'w'))
     log_info(f'Saved New Settings to settings.ini',logger="Information")
 
@@ -417,13 +399,12 @@ set_main_window_resizable(False)
 #Creates the DearPyGui Window
 with window("Fisherman Window",width = 600,height = 500):
     set_window_pos("Fisherman Window",0,0)
-    add_input_int("Amount Of Spots",max_value=10,min_value=0,tip = "Amount of Fishing Spots")
+    add_input_int("Amount Of Spots",max_value=4,min_value=0,tip = "Amount of Fishing Spots")
     add_input_int("Set Volume Threshold",max_value=100000,min_value=0,default_value=int(max_volume),callback = save_volume ,tip = "Volume Threshold to trigger catch event")
     add_input_float("Set Detection Threshold",min_value=0.1,max_value=2.5,default_value=detection_threshold,callback=save_threshold)
     #add_spacing(count = 3)
     add_slider_float("Set Time Lauch Distance",min_value=0.3,max_value=1.0,default_value=dist_launch_time,callback=save_dist_launch_time, tip = "Time to determine the launch distance")
     add_slider_int("Set Cast Time",min_value=1,max_value=60,default_value=int(cast_time),callback= save_cast_time, tip = "time to determine how long without getting fish")
-    add_slider_int("Set Food Time",min_value=1,max_value=60,default_value=int(food_time),callback= save_food_time, tip = "time to use food. Is minutes")
     add_listbox("Set Game Resolution", items=resolutions, default_value=int(resolution),callback=save_resolution)
     add_spacing(count = 3)
     add_button("Set Fishing Spots",width=130,callback=generate_coords,tip = "Starts function that lets you select fishing spots")
