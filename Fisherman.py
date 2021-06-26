@@ -103,13 +103,13 @@ def cast_hook():
                 log_info(f"Casted towards:{x,y}",logger="Information")
                 pyautogui.mouseDown()
 
-                if n === 1:
+                if n == 1:
                     time.sleep(random.uniform(dist_launch_time1-0.2,dist_launch_time1))
-                elif n === 2:
+                elif n == 2:
                     time.sleep(random.uniform(dist_launch_time2-0.2,dist_launch_time2))
-                elif n === 3:
+                elif n == 3:
                     time.sleep(random.uniform(dist_launch_time3-0.2,dist_launch_time3))
-                elif n === 4:
+                elif n == 4:
                     time.sleep(random.uniform(dist_launch_time4-0.2,dist_launch_time4))
 
                 pyautogui.mouseUp()
@@ -276,7 +276,7 @@ def start(data,sender):
             return
         else:
             pyautogui.mouseUp()
-            x,y = get_new_spot()
+            x,y,n = get_new_spot()
             pyautogui.moveTo(x,y,tween=pyautogui.linear,duration=0.2)
             time.sleep(0.25)
             pyautogui.mouseDown()
