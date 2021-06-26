@@ -18,7 +18,12 @@ max_volume = parser.getint('Settings','Volume_Threshold')
 screen_area = parser.get('Settings','tracking_zone')
 coord_bait = parser.get('Settings','bait_inventory')
 detection_threshold = parser.getfloat('Settings','detection_threshold')
-dist_launch_time = parser.getfloat('Settings', 'launch_time')
+
+dist_launch_time1 = parser.getfloat('Settings', 'launch_time1')
+dist_launch_time2 = parser.getfloat('Settings', 'launch_time2')
+dist_launch_time3 = parser.getfloat('Settings', 'launch_time3')
+dist_launch_time4 = parser.getfloat('Settings', 'launch_time4')
+
 cast_time = parser.getint('Settings', 'cast_time')
 screen_area = screen_area.strip('(')
 screen_area = screen_area.strip(')')
@@ -56,7 +61,6 @@ fish_count = 0
 
 bait_counter = 0
 food_bait = 0
-food_timer = 0
 
 ##########################################################
 #
@@ -93,12 +97,21 @@ def cast_hook():
             if STATE == "CASTING" or STATE == "STARTED":
                 time.sleep(2.6)
                 pyautogui.mouseUp()
-                x,y = get_new_spot()
+                x,y,n = get_new_spot()
                 pyautogui.moveTo(x,y,tween=pyautogui.linear,duration=0.2)
                 time.sleep(0.7)
                 log_info(f"Casted towards:{x,y}",logger="Information")
                 pyautogui.mouseDown()
-                time.sleep(random.uniform(dist_launch_time-0.2,dist_launch_time))
+
+                if n === 1:
+                    time.sleep(random.uniform(dist_launch_time1-0.2,dist_launch_time1))
+                elif n === 2:
+                    time.sleep(random.uniform(dist_launch_time2-0.2,dist_launch_time2))
+                elif n === 3:
+                    time.sleep(random.uniform(dist_launch_time3-0.2,dist_launch_time3))
+                elif n === 4:
+                    time.sleep(random.uniform(dist_launch_time4-0.2,dist_launch_time4))
+
                 pyautogui.mouseUp()
                 time.sleep(2.5)
                 STATE = "CAST"
@@ -167,6 +180,7 @@ def generate_coords(sender,data):
         x,y = pyautogui.position()
         temp.append(x)
         temp.append(y)
+        temp.append(n)
         coords.append(temp)
         log_info(f'Position:{n} Saved. | {x,y}',logger="Information")
 #generate location bait inventory
@@ -307,11 +321,25 @@ def save_threshold(sender,data):
     global detection_threshold
     detection_threshold = get_value("Set Detection Threshold")
     log_info(f'Detection Threshold Updated to :{detection_threshold}',logger="Information")
+
 #Set time launch dist
-def save_dist_launch_time(sender,data):
-    global dist_launch_time
-    dist_launch_time = get_value("Set Time Launch Distance")
-    log_info(f'Dist time launch Updated to :{dist_launch_time}',logger="Information")
+def save_dist_launch_time1(sender,data):
+    global dist_launch_time1
+    dist_launch_time1 = get_value("Set Time Launch Distance 1")
+    log_info(f'Dist time 1 launch Updated to :{dist_launch_time1}',logger="Information")
+def save_dist_launch_time2(sender,data):
+    global dist_launch_time2
+    dist_launch_time2 = get_value("Set Time Launch Distance 2")
+    log_info(f'Dist time 2 launch Updated to :{dist_launch_time2}',logger="Information")
+def save_dist_launch_time3(sender,data):
+    global dist_launch_time3
+    dist_launch_time3 = get_value("Set Time Launch Distance 3")
+    log_info(f'Dist time 3 launch Updated to :{dist_launch_time3}',logger="Information")
+def save_dist_launch_time4(sender,data):
+    global dist_launch_time4
+    dist_launch_time4 = get_value("Set Time Launch Distance 4")
+    log_info(f'Dist time 4 launch Updated to :{dist_launch_time4}',logger="Information")
+
 def save_cast_time(sender,data):
     global cast_time
     cast_time = get_value("Set Cast Time")
@@ -384,7 +412,12 @@ def save_settings(sender,data):
     p.set('Settings','tracking_zone',str(screen_area))
     p.set('Settings', 'bait_inventory', str(coord_bait))
     p.set('Settings','detection_threshold',str(detection_threshold))
-    p.set('Settings','launch_time',str(dist_launch_time))
+
+    p.set('Settings','launch_time1',str(dist_launch_time1))
+    p.set('Settings','launch_time2',str(dist_launch_time2))
+    p.set('Settings','launch_time3',str(dist_launch_time3))
+    p.set('Settings','launch_time4',str(dist_launch_time4))
+
     p.set('Settings','cast_time',str(cast_time))
     p.write(open(f'Settings.ini', 'w'))
     log_info(f'Saved New Settings to settings.ini',logger="Information")
@@ -403,7 +436,12 @@ with window("Fisherman Window",width = 600,height = 500):
     add_input_int("Set Volume Threshold",max_value=100000,min_value=0,default_value=int(max_volume),callback = save_volume ,tip = "Volume Threshold to trigger catch event")
     add_input_float("Set Detection Threshold",min_value=0.1,max_value=2.5,default_value=detection_threshold,callback=save_threshold)
     #add_spacing(count = 3)
-    add_slider_float("Set Time Lauch Distance",min_value=0.3,max_value=1.0,default_value=dist_launch_time,callback=save_dist_launch_time, tip = "Time to determine the launch distance")
+
+    add_slider_float("Set Time Launch Distance 1",min_value=0.3,max_value=1.0,default_value=dist_launch_time1,callback=save_dist_launch_time1, tip = "Time to determine the launch distance 1")
+    add_slider_float("Set Time Launch Distance 2",min_value=0.3,max_value=1.0,default_value=dist_launch_time2,callback=save_dist_launch_time2, tip = "Time to determine the launch distance 2")
+    add_slider_float("Set Time Launch Distance 3",min_value=0.3,max_value=1.0,default_value=dist_launch_time3,callback=save_dist_launch_time3, tip = "Time to determine the launch distance 3")
+    add_slider_float("Set Time Launch Distance 4",min_value=0.3,max_value=1.0,default_value=dist_launch_time4,callback=save_dist_launch_time4, tip = "Time to determine the launch distance 4")
+
     add_slider_int("Set Cast Time",min_value=1,max_value=60,default_value=int(cast_time),callback= save_cast_time, tip = "time to determine how long without getting fish")
     add_listbox("Set Game Resolution", items=resolutions, default_value=int(resolution),callback=save_resolution)
     add_spacing(count = 3)
@@ -421,7 +459,7 @@ with window("Fisherman Window",width = 600,height = 500):
     add_spacing(count = 5)
 
     add_logger("Information",log_level=0)
-    log_info(f'Loaded Settings. Volume Threshold:{max_volume},Tracking Zone:{screen_area},Launch Time: {dist_launch_time}, Cast Time: {cast_time},Debug Mode:{debugmode}',logger="Information")
+    log_info(f'Loaded Settings. Volume Threshold:{max_volume},Tracking Zone:{screen_area}, Cast Time: {cast_time},Debug Mode:{debugmode}',logger="Information")
 
 Setup()
 threading.Thread(target = Setup_title).start()
