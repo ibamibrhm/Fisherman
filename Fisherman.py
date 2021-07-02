@@ -119,6 +119,8 @@ def cast_hook():
                 time.sleep(cast_time)
                 if STATE == "CAST":
                     log_warning(f"Seems to be stuck on cast. Recasting",logger="Information")
+                    pyautogui.press('r')
+                    time.sleep(0.25)
                     pyautogui.click(clicks= 2, interval=0.15)
                     time.sleep(0.25)
                     STATE = "CASTING"
@@ -285,9 +287,6 @@ def start(data,sender):
             time.sleep(0.15)
             pyautogui.press('1')
             time.sleep(0.8)
-            pyautogui.press('2')
-            time.sleep(2.2)
-            time.sleep(0.2)
             volume_manager.start()
             log_info(f'Volume Scanner Started',logger="Information")
             hook_manager.start()
