@@ -145,7 +145,7 @@ def do_minigame():
             while 1:
                 valid,location,size = Detect_Bobber()
                 if valid == "TRUE":
-                    if location[0] < size / 2:
+                    if location[0] < size * 0.6:
                         pyautogui.mouseDown()
                     else:
                         pyautogui.mouseUp()
