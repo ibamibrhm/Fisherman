@@ -17,7 +17,9 @@ resolution = parser.getint("Settings", "game_resolution")
 max_volume = parser.getint("Settings", "Volume_Threshold")
 screen_area = parser.get("Settings", "tracking_zone")
 coord_bait = parser.get("Settings", "bait_inventory")
+coord_food = parser.get("Settings", "food_inventory")
 detection_threshold = parser.getfloat("Settings", "detection_threshold")
+last_food_time = parser.get("Settings", "last_food_time")
 
 dist_launch_time1 = parser.getfloat("Settings", "launch_time1")
 dist_launch_time2 = parser.getfloat("Settings", "launch_time2")
@@ -43,6 +45,14 @@ coord_bait = coord_bait.strip(")")
 # (coord_bait)
 xy_bait = coord_bait.split(",")
 coord_bait = int(xy_bait[0]), int(xy_bait[1])
+
+# print(coord_food)
+coord_food = coord_food.strip("(")
+coord_food = coord_food.strip(")")
+# (coord_food)
+xy_food = coord_food.split(",")
+coord_food = int(xy_food[0]), int(xy_food[1])
+
 # Sound Volume
 total = 0
 
@@ -61,6 +71,8 @@ fish_count = 0
 
 bait_counter = 0
 food_bait = 0
+
+food_used = 0
 
 ##########################################################
 #
@@ -183,6 +195,40 @@ def do_minigame():
             STATE = "CASTING"
 
 
+def food_check():
+    global last_food_time
+    log_info(f"Food checking", logger="Information")
+    current_time = datetime.now().time().strftime("%H:%M")
+    x = datetime.strptime(last_food_time, "%H:%M")
+    y = datetime.strptime(current_time, "%H:%M")
+
+    diff_time = (y - x).total_seconds() / 60.0
+
+    if diff_time > 30:
+        log_info(f"Using Food!. Time: {current_time}", logger="Information")
+        pyautogui.press("2")
+        food_used += 1
+        last_food_time = current_time
+        fp = open("settings.ini")
+        p = configparser.ConfigParser()
+        p.read_file(fp)
+        p.set("Settings", "last_food_time", str(current_time))
+        p.write(open(f"Settings.ini", "w"))
+        log_info(f"Saved new food time to settings.ini", logger="Information")
+
+        if food_used == 10:
+            pyautogui.press("i")
+            x = int(coord_food[0])
+            y = int(coord_food[1])
+            pyautogui.moveTo(x, y, tween=pyautogui.linear, duration=0.2)
+            time.sleep(0.3)
+            log_info(f"Reloading food...", logger="Information")
+            pyautogui.click(button="right", interval=0.25)
+            time.sleep(0.3)
+            pyautogui.press("i")
+            food_used = 0
+
+
 ##########################################################
 #
 #   These Functions are all Callbacks used by DearPyGui
@@ -217,7 +263,7 @@ def generate_coords(sender, data):
 
 # generate location bait inventory
 def bait_coords(sender, data):
-    global coord_bait, STATE, state_left
+    global coord_bait, state_left
     for n in range(1):
         n = n + 1
         temp = []
@@ -236,6 +282,28 @@ def bait_coords(sender, data):
         x, y = pyautogui.position()
         coord_bait = x, y
         log_info(f"Updated bait inventory to {coord_bait}", logger="Information")
+
+
+def food_coords(sender, data):
+    global coord_food, state_left
+    for n in range(1):
+        n = n + 1
+        temp = []
+        log_info(
+            f"[Food:{n}]|Press Spacebar over the food in inventory",
+            logger="Information",
+        )
+        time.sleep(1)
+        while True:
+            a = win32api.GetKeyState(0x20)
+            if a != state_left:
+                state_left = a
+                if a < 0:
+                    break
+            time.sleep(0.001)
+        x, y = pyautogui.position()
+        coord_food = x, y
+        log_info(f"Updated food inventory to {coord_food}", logger="Information")
 
 
 # Sets tracking zone for image detection
@@ -421,6 +489,7 @@ def Setup_title():
             f"Fisherman | Status:{STATE} | Fish Hits:{fish_count} |Current Volume: {total} / {max_volume}  |"
         )
         time.sleep(0.05)
+        food_check()
         if bait_counter >= 10:
             bait_counter = 0
             food_bait += 1
@@ -483,6 +552,7 @@ def save_settings(sender, data):
     p.set("Settings", "volume_threshold", str(max_volume))
     p.set("Settings", "tracking_zone", str(screen_area))
     p.set("Settings", "bait_inventory", str(coord_bait))
+    p.set("Settings", "food_inventory", str(coord_food))
     p.set("Settings", "detection_threshold", str(detection_threshold))
 
     p.set("Settings", "launch_time1", str(dist_launch_time1))
@@ -588,6 +658,10 @@ with window("Fisherman Window", width=600, height=500):
     add_same_line()
     add_button(
         "Set Bait Inventory", callback=bait_coords, tip="Sets zone bot bait inventory"
+    )
+    add_same_line()
+    add_button(
+        "Set Food Inventory", callback=food_coords, tip="Sets zone bot food inventory"
     )
     add_spacing(count=5)
     add_button("Start Bot", callback=start, tip="Starts the bot. Or press f1")
