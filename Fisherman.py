@@ -197,37 +197,44 @@ def do_minigame():
 
 
 def food_check():
-    global last_food_time, food_used
-    log_info(f"Food checking", logger="Information")
-    current_time = datetime.now().time().strftime("%H:%M")
-    x = datetime.strptime(last_food_time, "%H:%M")
-    y = datetime.strptime(current_time, "%H:%M")
+    global last_food_time, food_used, stop_button, STATE
+    while True:
+        if stop_button == False:
+            if STATE != "IDLE":
+                current_time = datetime.now().time().strftime("%H:%M")
+                x = datetime.strptime(last_food_time, "%H:%M")
+                y = datetime.strptime(current_time, "%H:%M")
 
-    diff_time = (y - x).total_seconds() / 60.0
+                diff_time = (y - x).total_seconds() / 60.0
 
-    if diff_time > 30:
-        log_info(f"Using Food!. Time: {current_time}", logger="Information")
-        pyautogui.press("2")
-        food_used += 1
-        last_food_time = current_time
-        fp = open("settings.ini")
-        p = configparser.ConfigParser()
-        p.read_file(fp)
-        p.set("Settings", "last_food_time", str(current_time))
-        p.write(open(f"Settings.ini", "w"))
-        log_info(f"Saved new food time to settings.ini", logger="Information")
+                if diff_time > 30:
+                    log_info(f"Using Food!. Time: {current_time}", logger="Information")
+                    pyautogui.press("2")
+                    time.sleep(0.3)
+                    food_used += 1
+                    last_food_time = current_time
+                    fp = open("settings.ini")
+                    p = configparser.ConfigParser()
+                    p.read_file(fp)
+                    p.set("Settings", "last_food_time", str(current_time))
+                    p.write(open(f"Settings.ini", "w"))
+                    log_info(
+                        f"Saved new food time to settings.ini", logger="Information"
+                    )
 
-        if food_used == 10:
-            pyautogui.press("i")
-            x = int(coord_food[0])
-            y = int(coord_food[1])
-            pyautogui.moveTo(x, y, tween=pyautogui.linear, duration=0.2)
-            time.sleep(0.3)
-            log_info(f"Reloading food...", logger="Information")
-            pyautogui.click(button="right", interval=0.25)
-            time.sleep(0.3)
-            pyautogui.press("i")
-            food_used = 0
+                    if food_used == 10:
+                        pyautogui.press("i")
+                        x = int(coord_food[0])
+                        y = int(coord_food[1])
+                        pyautogui.moveTo(x, y, tween=pyautogui.linear, duration=0.2)
+                        time.sleep(0.3)
+                        log_info(f"Reloading food...", logger="Information")
+                        pyautogui.click(button="right", interval=0.25)
+                        time.sleep(0.3)
+                        pyautogui.press("i")
+                        food_used = 0
+        else:
+            break
 
 
 ##########################################################
@@ -378,6 +385,7 @@ def start(data, sender):
     stop_button = False
     volume_manager = threading.Thread(target=check_volume, name="VOLUME CHECK MANAGE")
     hook_manager = threading.Thread(target=cast_hook, name="CAST HOOK MANAGE")
+    food_manager = threading.Thread(target=food_check, name="FOOD MANAGER")
     if stop_button == False:
         max_volume = get_value("Set Volume Threshold")
         if len(coords) == 0:
@@ -393,7 +401,10 @@ def start(data, sender):
             pyautogui.mouseUp()
             time.sleep(0.15)
             pyautogui.press("1")
-            time.sleep(0.8)
+            time.sleep(2.2)
+            food_manager.start()
+            log_info(f"Food Manager Started", logger="Information")
+            time.sleep(0.2)
             volume_manager.start()
             log_info(f"Volume Scanner Started", logger="Information")
             hook_manager.start()
@@ -490,9 +501,6 @@ def Setup_title():
             f"Fisherman | Status:{STATE} | Fish Hits:{fish_count} |Current Volume: {total} / {max_volume}  |"
         )
         time.sleep(0.05)
-
-        if STATE != "IDLE" and STATE != "STOPPING":
-            food_check()
 
         if bait_counter >= 10:
             bait_counter = 0
