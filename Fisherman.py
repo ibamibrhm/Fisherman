@@ -4,6 +4,7 @@ import pyautogui, pyaudio, audioop, threading, time, win32api, configparser, mss
 from dearpygui.core import *
 from dearpygui.simple import *
 import random, os
+from datetime import datetime
 
 # Loads Settings
 parser = configparser.ConfigParser()
@@ -196,7 +197,7 @@ def do_minigame():
 
 
 def food_check():
-    global last_food_time
+    global last_food_time, food_used
     log_info(f"Food checking", logger="Information")
     current_time = datetime.now().time().strftime("%H:%M")
     x = datetime.strptime(last_food_time, "%H:%M")
@@ -489,7 +490,10 @@ def Setup_title():
             f"Fisherman | Status:{STATE} | Fish Hits:{fish_count} |Current Volume: {total} / {max_volume}  |"
         )
         time.sleep(0.05)
-        food_check()
+
+        if STATE != "IDLE" and STATE != "STOPPING":
+            food_check()
+
         if bait_counter >= 10:
             bait_counter = 0
             food_bait += 1
